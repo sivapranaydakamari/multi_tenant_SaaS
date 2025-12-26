@@ -8,7 +8,7 @@ import {
   Checkbox,
   FormControlLabel,
   DialogActions,
-  Button
+  Button,
 } from "@mui/material";
 import API from "../api/axios";
 
@@ -18,7 +18,7 @@ const UserModal = ({ open, onClose, userData, tenantId, refresh }) => {
     fullName: userData?.fullName || "",
     password: "",
     role: userData?.role || "user",
-    isActive: userData?.isActive ?? true
+    isActive: userData?.isActive ?? true,
   });
 
   const submit = async () => {
@@ -32,12 +32,12 @@ const UserModal = ({ open, onClose, userData, tenantId, refresh }) => {
       refresh();
       onClose();
     } catch (err) {
-      console.log("User add/edit failed", err);
+      console.error("User add/edit failed", err);
     }
   };
 
   return (
-    <Dialog open={open} fullWidth>
+    <Dialog open={open} fullWidth maxWidth="sm">
       <DialogTitle>{userData ? "Edit User" : "Add User"}</DialogTitle>
 
       <DialogContent>
@@ -99,7 +99,11 @@ const UserModal = ({ open, onClose, userData, tenantId, refresh }) => {
 
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={submit}>
+        <Button
+          variant="contained"
+          sx={{ bgcolor: "#000", "&:hover": { bgcolor: "#111" } }}
+          onClick={submit}
+        >
           Save
         </Button>
       </DialogActions>

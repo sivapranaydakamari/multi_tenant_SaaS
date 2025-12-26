@@ -20,7 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import UserModal from "../components/UserModal";
 
 const Users = () => {
-  const { tenant, user } = useAuth();
+  const { tenant, user, loading } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState("");
@@ -29,10 +29,13 @@ const Users = () => {
   const [editUser, setEditUser] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
 
+  // ✅ SAFE fetch
   const fetchUsers = async () => {
+    if (!tenant?.id) return;
+
     try {
       const res = await API.get(`/tenants/${tenant.id}/users`);
-      let list = res.data.data.users;
+      let list = res.data.data.users || [];
 
       if (search) {
         const term = search.toLowerCase();
@@ -49,13 +52,23 @@ const Users = () => {
 
       setUsers(list);
     } catch (err) {
-      console.log("Fetch users failed", err);
+      console.error("Fetch users failed", err);
     }
   };
 
+  // ✅ Load users once tenant is ready
   useEffect(() => {
-    if (tenant) fetchUsers();
+    if (tenant?.id) fetchUsers();
   }, [tenant, roleFilter]);
+
+  // ✅ Guard rendering
+  if (loading || !tenant) {
+    return (
+      <Box sx={{ p: 4 }}>
+        <Typography>Loading users...</Typography>
+      </Box>
+    );
+  }
 
   const openAddModal = () => {
     setEditUser(null);
@@ -73,13 +86,12 @@ const Users = () => {
       setDeleteId(null);
       fetchUsers();
     } catch (err) {
-      console.log("Delete user failed", err);
+      console.error("Delete user failed", err);
     }
   };
 
   return (
     <Box sx={{ p: 4, maxWidth: 1400, mx: "auto" }}>
-
       {/* HEADER */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight={700}>
@@ -135,23 +147,18 @@ const Users = () => {
               borderRadius: 2,
               textTransform: "none",
               fontWeight: 600,
-              "&:hover": {
-                bgcolor: "#111",
-              },
+              "&:hover": { bgcolor: "#111" },
             }}
           >
             + Add User
           </Button>
-
         )}
       </Box>
 
       {/* USER GRID */}
       <Grid container spacing={3}>
         {users.length === 0 && (
-          <Typography sx={{ mt: 2 }}>
-            No users found
-          </Typography>
+          <Typography sx={{ mt: 2 }}>No users found</Typography>
         )}
 
         {users.map((u) => (
@@ -177,15 +184,11 @@ const Users = () => {
               </Typography>
 
               <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                <Chip
-                  label={u.role.replace("_", " ")}
-                  variant="outlined"
-                />
-
+                <Chip label={u.role.replace("_", " ")} variant="outlined" />
                 <Chip
                   label={u.isActive ? "Active" : "Inactive"}
-                  variant="outlined"
                   color={u.isActive ? "success" : "default"}
+                  variant="outlined"
                 />
               </Box>
 
