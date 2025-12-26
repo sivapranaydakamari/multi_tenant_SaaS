@@ -1,163 +1,533 @@
-# API.md — Multi-Tenant SaaS Platform
+# API Documentation – Multi-Tenant SaaS Platform
 
-## 1. Overview
+This document describes all backend APIs exposed by the **Multi-Tenant SaaS Project Management System**.
 
-This document lists all APIs for the **Multi-Tenant Project & Task Management platform**.
-
-**Key Points:**
-
-* Every API requires a **JWT token** (except login/register).
-* Data is **tenant-scoped**, meaning you can only access your own organization’s data.
-* Roles: `Super Admin`, `Tenant Admin`, `User`. Access is enforced via **RBAC**.
-* Response format is always:
-
-```json
-{
-  "success": true,
-  "message": "Some description",
-  "data": {}
-}
-```
-
-* Standard HTTP codes:
-
-  * `200` — OK
-  * `201` — Created
-  * `400` — Bad Request
-  * `401` — Unauthorized
-  * `403` — Forbidden
-  * `404` — Not Found
-  * `409` — Conflict / Limit exceeded
+All APIs are RESTful, JSON-based, and secured using **JWT authentication** where required.
 
 ---
 
-## 2. Authentication APIs
+## Authentication Overview
 
-### 2.1 Login
+* Authentication is handled using **JWT (Bearer Token)**
+* After login, the token must be sent in headers:
 
-**POST** `/api/auth/login`
-**Body:**
+```
+Authorization: Bearer <JWT_TOKEN>
+```
+
+* Tenant isolation is enforced on every protected route
+* Super Admin has no `tenant_id`
+* Tenant Admin & Users belong to a tenant
+
+---
+
+## Base URL
+
+### Local / Docker
+
+```
+http://localhost:5000/api
+```
+
+---
+
+## Health Check
+
+### 1. Health Check API
+
+**Endpoint**
+
+```
+GET /health
+```
+
+**Auth Required:** No
+
+**Response**
 
 ```json
 {
-  "email": "user@example.com",
-  "password": "password123",
-  "subdomain": "tenant1"
+  "status": "ok",
+  "database": "connected"
 }
 ```
 
-**Success Response:**
+Used by Docker & evaluation scripts to verify readiness.
+
+---
+
+## Authentication APIs
+
+### 2. Register Tenant
+
+Registers a new tenant along with its Tenant Admin.
+
+**Endpoint**
+
+```
+POST /auth/register-tenant
+```
+
+**Auth Required:** No
+
+**Request Body**
 
 ```json
 {
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "JWT_TOKEN",
-    "role": "Tenant Admin",
-    "tenantId": "1"
+  "organizationName": "Acme Corp",
+  "subdomain": "acme",
+  "adminEmail": "admin@acme.com",
+  "adminName": "Acme Admin",
+  "password": "Admin@123"
+}
+```
+
+**Response**
+
+```json
+{
+  "message": "Tenant registered successfully"
+}
+```
+
+---
+
+### 3. Login
+
+Authenticate a user and receive JWT token.
+
+**Endpoint**
+
+```
+POST /auth/login
+```
+
+**Auth Required:** No
+
+**Request Body**
+
+```json
+{
+  "email": "admin@demo.com",
+  "password": "Admin@123"
+}
+```
+
+**Response**
+
+```json
+{
+  "token": "<JWT_TOKEN>",
+  "user": {
+    "id": "uuid",
+    "email": "admin@demo.com",
+    "role": "tenant_admin",
+    "tenant_id": "uuid"
   }
 }
 ```
 
-### 2.2 Register Tenant (Super Admin Only)
+---
 
-**POST** `/api/auth/register-tenant`
-**Body:**
+### 4. Logout
+
+Client-side logout (token invalidation handled on frontend).
+
+**Endpoint**
+
+```
+POST /auth/logout
+```
+
+**Auth Required:** Yes
+
+**Response**
 
 ```json
 {
-  "name": "Tenant Name",
-  "adminName": "John Doe",
-  "adminEmail": "john@tenant.com",
-  "password": "pass123",
-  "plan": "free"
+  "message": "Logged out successfully"
 }
 ```
 
-**Rules:**
+---
 
-* Tenant `subdomain` is unique
-* Admin becomes **Tenant Admin**
-* Super Admin only
+## User Management APIs
+
+### 5. Create User (Tenant Admin Only)
+
+**Endpoint**
+
+```
+POST /users
+```
+
+**Auth Required:** Yes (Tenant Admin)
+
+**Request Body**
+
+```json
+{
+  "email": "user3@demo.com",
+  "fullName": "Demo User 3",
+  "password": "User@123",
+  "role": "user"
+}
+```
+
+**Response**
+
+```json
+{
+  "message": "User created successfully"
+}
+```
 
 ---
 
-## 3. Tenant APIs (Super Admin)
+### 6. List Users
 
-* **Get all tenants** — `GET /api/tenants`
-* **Update tenant plan** — `PATCH /api/tenants/:id/plan`
-* **Delete tenant** — `DELETE /api/tenants/:id`
+**Endpoint**
 
-✅ Only accessible by **Super Admin**
+```
+GET /users
+```
 
----
+**Auth Required:** Yes
 
-## 4. User APIs (Tenant Admin)
+**Response**
 
-* **Create user** — `POST /api/users`
-
-  * Must check **max_users** for tenant plan
-* **List users** — `GET /api/users`
-* **Update user role/info** — `PATCH /api/users/:id`
-* **Delete user** — `DELETE /api/users/:id`
-
-**Notes:**
-
-* Super Admin users are global, `tenant_id = NULL`
-* Users can only see other users in their tenant
+```json
+[
+  {
+    "id": "uuid",
+    "email": "user1@demo.com",
+    "role": "user"
+  }
+]
+```
 
 ---
 
-## 5. Project APIs (Tenant Admin)
+### 7. Delete User
 
-* **Create project** — `POST /api/projects`
+**Endpoint**
 
-  * Must check **max_projects** limit
-* **List projects** — `GET /api/projects`
-* **Update project** — `PATCH /api/projects/:id`
-* **Delete project** — `DELETE /api/projects/:id`
+```
+DELETE /users/:userId
+```
 
-**Rules:**
+**Auth Required:** Yes (Tenant Admin)
 
-* Projects belong to a tenant
-* Tenant Admin manages projects for their tenant only
+**Response**
 
----
-
-## 6. Task APIs (Tenant Admin/User)
-
-* **Create task** — `POST /api/tasks`
-* **List tasks by project** — `GET /api/projects/:id/tasks`
-* **Update task** — `PATCH /api/tasks/:id`
-* **Delete task** — `DELETE /api/tasks/:id`
-* **Assign task** — `PATCH /api/tasks/:id/assign`
-
-**Notes:**
-
-* Users can only view tasks **assigned to them**
-* Tenant Admin can assign any task in their tenant
+```json
+{
+  "message": "User deleted successfully"
+}
+```
 
 ---
 
-## 7. Audit Logging
+## Project APIs
 
-All critical actions are logged:
+### 8. Create Project
 
-* User creation/deletion
-* Project creation/deletion
-* Task assignment/status update
+**Endpoint**
 
-**Table:** `audit_logs`
-**Fields:** `tenant_id`, `action`, `performed_by`, `timestamp`
+```
+POST /projects
+```
+
+**Auth Required:** Yes
+
+**Request Body**
+
+```json
+{
+  "name": "New Project",
+  "description": "Project description"
+}
+```
+
+**Response**
+
+```json
+{
+  "message": "Project created successfully"
+}
+```
 
 ---
 
-## 8. Errors & Limits
+### 9. List Projects
 
-* **User Limit Exceeded:** `409 Conflict`
-* **Project Limit Exceeded:** `409 Conflict`
-* **Unauthorized Access:** `403 Forbidden`
-* **Invalid JWT:** `401 Unauthorized`
+**Endpoint**
+
+```
+GET /projects
+```
+
+**Auth Required:** Yes
+
+**Response**
+
+```json
+[
+  {
+    "id": "uuid",
+    "name": "Project Alpha",
+    "status": "active"
+  }
+]
+```
 
 ---
+
+### 10. Get Project Details
+
+**Endpoint**
+
+```
+GET /projects/:projectId
+```
+
+**Auth Required:** Yes
+
+**Response**
+
+```json
+{
+  "id": "uuid",
+  "name": "Project Alpha",
+  "description": "Initial demo project"
+}
+```
+
+---
+
+### 11. Update Project
+
+**Endpoint**
+
+```
+PUT /projects/:projectId
+```
+
+**Auth Required:** Yes
+
+**Request Body**
+
+```json
+{
+  "name": "Updated Project Name",
+  "status": "active"
+}
+```
+
+---
+
+### 12. Delete Project
+
+**Endpoint**
+
+```
+DELETE /projects/:projectId
+```
+
+**Auth Required:** Yes
+
+**Response**
+
+```json
+{
+  "message": "Project deleted successfully"
+}
+```
+
+---
+
+## Task APIs
+
+### 13. Create Task
+
+**Endpoint**
+
+```
+POST /projects/:projectId/tasks
+```
+
+**Auth Required:** Yes
+
+**Request Body**
+
+```json
+{
+  "title": "Setup Database",
+  "description": "Initial DB setup",
+  "priority": "high"
+}
+```
+
+---
+
+### 14. List Tasks
+
+**Endpoint**
+
+```
+GET /projects/:projectId/tasks
+```
+
+**Auth Required:** Yes
+
+**Response**
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "Setup Database",
+    "status": "todo",
+    "priority": "high"
+  }
+]
+```
+
+---
+
+### 15. Update Task
+
+**Endpoint**
+
+```
+PUT /tasks/:taskId
+```
+
+**Auth Required:** Yes
+
+**Request Body**
+
+```json
+{
+  "status": "in_progress",
+  "priority": "medium"
+}
+```
+
+---
+
+### 16. Delete Task
+
+**Endpoint**
+
+```
+DELETE /tasks/:taskId
+```
+
+**Auth Required:** Yes
+
+**Response**
+
+```json
+{
+  "message": "Task deleted successfully"
+}
+```
+
+---
+
+## Audit Logs
+
+### 17. List Audit Logs
+
+**Endpoint**
+
+```
+GET /audit-logs
+```
+
+**Auth Required:** Yes (Admin)
+
+**Response**
+
+```json
+[
+  {
+    "action": "PROJECT_CREATED",
+    "performed_by": "admin@demo.com",
+    "created_at": "2025-01-01T10:00:00Z"
+  }
+]
+```
+
+---
+
+## Tenant APIs
+
+### 18. Get Tenant Info
+
+**Endpoint**
+
+```
+GET /tenant
+```
+
+**Auth Required:** Yes
+
+**Response**
+
+```json
+{
+  "id": "uuid",
+  "name": "Demo Company",
+  "subdomain": "demo",
+  "status": "active"
+}
+```
+
+---
+
+## Super Admin APIs
+
+### 19. List All Tenants (Super Admin Only)
+
+**Endpoint**
+
+```
+GET /tenants
+```
+
+**Auth Required:** Yes (Super Admin)
+
+**Response**
+
+```json
+[
+  {
+    "name": "Demo Company",
+    "status": "active"
+  }
+]
+```
+
+---
+
+## Role Summary
+
+| Role         | Permissions                   |
+| ------------ | ----------------------------- |
+| Super Admin  | View all tenants              |
+| Tenant Admin | Manage users, projects, tasks |
+| User         | Manage assigned tasks         |
+
+---
+
+## API Coverage Checklist
+
+* ✔ Authentication
+* ✔ Multi-tenant isolation
+* ✔ Role-based access
+* ✔ Projects & tasks
+* ✔ Automatic seed support
+* ✔ Health check
+
