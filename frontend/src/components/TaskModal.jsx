@@ -136,17 +136,24 @@ const TaskModal = ({ open, onClose, task, projectId, refresh }) => {
 
   const submit = async () => {
     try {
+      const payload = {
+        ...form,
+        assignedTo: form.assignedTo === "all" ? null : form.assignedTo,
+      };
+
       if (task) {
-        await API.put(`/tasks/${task.id}`, form);
+        await API.put(`/tasks/${task.id}`, payload);
       } else {
-        await API.post(`/projects/${projectId}/tasks`, form);
+        await API.post(`/projects/${projectId}/tasks`, payload);
       }
+
       refresh();
       onClose();
     } catch (err) {
-      console.log("Task create/edit error", err);
+      console.log("Task create/edit error", err.response?.data || err);
     }
   };
+
 
   return (
     <Dialog open={open} fullWidth maxWidth="sm">
