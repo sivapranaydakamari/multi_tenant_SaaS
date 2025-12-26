@@ -87,15 +87,16 @@ const ProjectDetails = () => {
     }
   };
 
-  const confirmDeleteTask = async () => {
+  const handleDelete = async (taskId) => {
     try {
-      await API.delete(`/tasks/${deleteTaskId}`);
-      setDeleteTaskId(null);
-      loadTasks();
+      await API.delete(`/tasks/${taskId}`);
+      loadTasks(); 
     } catch (err) {
-      console.log("Delete task error", err);
+      console.error("Delete failed", err);
     }
   };
+
+
 
   if (!project) return <Typography sx={{ p: 3 }}>Loading...</Typography>;
 
@@ -270,7 +271,7 @@ const ProjectDetails = () => {
         <DialogTitle>Delete Task?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setDeleteTaskId(null)}>Cancel</Button>
-          <Button color="error" onClick={confirmDeleteTask}>
+          <Button color="error" onClick={handleDelete}>
             Delete
           </Button>
         </DialogActions>

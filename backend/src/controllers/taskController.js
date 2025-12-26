@@ -78,3 +78,33 @@ export const updateTask = async (req, res, next) => {
     next(err);
   }
 };
+
+export const deleteTask = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const { tenantId } = req.user;
+
+    const result = await pool.query(
+      `
+      DELETE FROM tasks
+      WHERE id = $1 AND tenant_id = $2
+      RETURNING id
+      `,
+      [taskId, tenantId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Task deleted successfully"
+    });
+  } catch (err) {
+    next(err);
+  }
+};

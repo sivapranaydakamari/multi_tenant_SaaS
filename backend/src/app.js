@@ -33,7 +33,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 // task route
 app.use('/api/projects', taskRoutes);
-app.use('/api/', taskRoutes);
+app.use('/api', taskRoutes);
 
 app.use('/api', healthRoutes);
 
