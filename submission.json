@@ -1,0 +1,78 @@
+{
+  "projectName": "Multi-Tenant SaaS Project Management Platform",
+
+  "description": "A production-ready multi-tenant SaaS application that allows organizations to manage projects and tasks with strict tenant isolation, role-based access control, and automated database initialization using Docker.",
+
+  "liveUrls": {
+    "frontend": "http://localhost:3000",
+    "backend": "http://localhost:5000",
+    "healthCheck": "http://localhost:5000/api/health"
+  },
+
+  "testCredentials": {
+    "superAdmin": {
+      "email": "superadmin@system.com",
+      "password": "Admin@123",
+      "role": "super_admin"
+    },
+    "tenantAdmin": {
+      "email": "admin@demo.com",
+      "password": "Admin@123",
+      "tenant": "demo",
+      "role": "tenant_admin"
+    },
+    "regularUser": {
+      "email": "user1@demo.com",
+      "password": "User@123",
+      "tenant": "demo",
+      "role": "user"
+    }
+  },
+
+  "technologyStack": {
+    "frontend": "React.js",
+    "backend": "Node.js (Express)",
+    "database": "PostgreSQL",
+    "authentication": "JWT",
+    "containerization": "Docker & Docker Compose"
+  },
+
+  "dockerSetup": {
+    "services": [
+      "database",
+      "backend",
+      "frontend"
+    ],
+    "ports": {
+      "database": "5432",
+      "backend": "5000",
+      "frontend": "3000"
+    }
+  },
+
+  "databaseInitialization": {
+    "migrations": "Automatic via Docker entrypoint",
+    "seeds": "Automatic via Docker entrypoint",
+    "manualStepsRequired": false
+  },
+
+  "features": [
+    "Multi-tenant architecture with strict data isolation",
+    "Role-based access control (Super Admin, Tenant Admin, User)",
+    "JWT-based authentication and authorization",
+    "Project and task management per tenant",
+    "Task status and priority management using enums",
+    "Automatic database migrations and seed data",
+    "Audit logs for important actions",
+    "Dockerized frontend, backend, and database",
+    "Health check endpoint for service readiness",
+    "Production-ready container setup"
+  ],
+
+  "documentation": {
+    "readme": "README.md",
+    "apiDocumentation": "docs/API.md"
+  },
+
+  "notes": "All services start using a single command: docker-compose up -d. Database migrations and seed data are executed automatically without any manual intervention."
+}
