@@ -1,7 +1,11 @@
-import { createTaskService } from '../services/taskService.js';
-import { listTasksService } from '../services/taskService.js';
-import { updateTaskStatusService } from '../services/taskService.js';
-import { updateTaskService } from '../services/taskService.js';
+import {
+  createTaskService,
+  listTasksService,
+  updateTaskService,
+  updateTaskStatusService,
+  deleteTaskService
+} from '../services/taskService.js';
+
 
 export const createTask = async (req, res, next) => {
   try {
@@ -81,28 +85,19 @@ export const updateTask = async (req, res, next) => {
 
 export const deleteTask = async (req, res, next) => {
   try {
-    const { taskId } = req.params;
-    const { tenantId } = req.user;
+    const { projectId, taskId } = req.params;
 
-    const result = await pool.query(
-      `
-      DELETE FROM tasks
-      WHERE id = $1 AND tenant_id = $2
-      RETURNING id
-      `,
-      [taskId, tenantId]
+    const data = await deleteTaskService(
+      req.user,
+      projectId,
+      taskId,
+      req.ip
     );
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found"
-      });
-    }
-
-    res.json({
+    return res.status(200).json({
       success: true,
-      message: "Task deleted successfully"
+      message: "Task deleted successfully",
+      data
     });
   } catch (err) {
     next(err);

@@ -369,3 +369,41 @@ export const updateTaskService = async (authUser, taskId, body, ip) => {
     client.release();
   }
 };
+
+export const deleteTaskService = async (user, projectId, taskId, ip) => {
+  const { tenantId, role, id: userId } = user;
+
+  // Only tenant_admin or super_admin can delete
+  if (!['tenant_admin', 'super_admin'].includes(role)) {
+    throw new AppError('Not authorized to delete task', 403);
+  }
+
+  const result = await pool.query(
+    `
+    DELETE FROM tasks
+    WHERE id = $1
+      AND project_id = $2
+      AND tenant_id = $3
+    RETURNING id
+    `,
+    [taskId, projectId, tenantId]
+  );
+
+  if (result.rowCount === 0) {
+    const err = new Error('Not authorized to delete task');
+    err.statusCode = 403;
+    throw err;
+
+  }
+
+  // Optional: audit log here
+  await pool.query(
+    `
+    INSERT INTO audit_logs (tenant_id, user_id, action, ip_address)
+    VALUES ($1, $2, $3, $4)
+    `,
+    [tenantId, userId, 'DELETE_TASK', ip]
+  );
+
+  return { id: taskId };
+};

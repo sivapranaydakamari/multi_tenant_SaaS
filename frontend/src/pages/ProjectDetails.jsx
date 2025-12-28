@@ -33,6 +33,7 @@ const ProjectDetails = () => {
   const [openTaskModal, setOpenTaskModal] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [deleteTaskId, setDeleteTaskId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadProject = async () => {
     try {
@@ -77,9 +78,7 @@ const ProjectDetails = () => {
             ? "completed"
             : "todo";
 
-      await API.patch(`/tasks/${task.id}/status`, {
-        status: nextStatus,
-      });
+      await API.patch(`/projects/${projectId}/tasks/${task.id}/status`, { status: nextStatus });
 
       loadTasks();
     } catch (err) {
@@ -89,14 +88,16 @@ const ProjectDetails = () => {
 
   const handleDelete = async (taskId) => {
     try {
-      await API.delete(`/tasks/${taskId}`);
-      loadTasks(); 
+      setDeleting(true);
+      await API.delete(`/projects/${projectId}/tasks/${taskId}`);
+      setDeleteTaskId(null);
+      loadTasks();
     } catch (err) {
       console.error("Delete failed", err);
+    } finally {
+      setDeleting(false);
     }
   };
-
-
 
   if (!project) return <Typography sx={{ p: 3 }}>Loading...</Typography>;
 
@@ -214,13 +215,14 @@ const ProjectDetails = () => {
                         <Chip label={task.priority} size="small" />
                         <Chip
                           label={
-                            task.assignedTo === "all"
-                              ? "All Users"
-                              : `User #${task.assignedTo}`
+                            task.assignedTo
+                              ? task.assignedTo.fullName
+                              : "Unassigned"
                           }
                           size="small"
                           variant="outlined"
                         />
+
                       </Box>
 
                       <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
@@ -271,9 +273,10 @@ const ProjectDetails = () => {
         <DialogTitle>Delete Task?</DialogTitle>
         <DialogActions>
           <Button onClick={() => setDeleteTaskId(null)}>Cancel</Button>
-          <Button color="error" onClick={handleDelete}>
+          <Button color="error" disabled={deleting} onClick={() => handleDelete(deleteTaskId)}>
             Delete
           </Button>
+
         </DialogActions>
       </Dialog>
     </Box>
