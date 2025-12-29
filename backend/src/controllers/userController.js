@@ -1,8 +1,4 @@
-import { addUserToTenantService } from '../services/userService.js';
-import { listTenantUsersService } from '../services/userService.js';
-import { updateUserService } from '../services/userService.js';
-import { deleteUserService } from '../services/userService.js';
-
+import { addUserToTenantService, listTenantUsersService, updateUserService, deleteUserService} from '../services/userService.js';
 
 export const addUserToTenant = async (req, res, next) => {
   try {
@@ -81,3 +77,15 @@ export const deleteUser = async (req, res, next) => {
   }
 };
 
+// export const listUsers = async (req, res, next) => {
+//   try {
+//     const users = await listUsersService(req.user);
+
+//     res.status(200).json({
+//       success: true,
+//       data: users
+//     });
+//   } catch (err) {
+//     next(err);
+//   }
+// };

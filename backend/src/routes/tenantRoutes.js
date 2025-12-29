@@ -10,8 +10,6 @@ import { addUserToTenant } from '../controllers/userController.js';
 import { authorizeTenantAdmin } from '../middleware/authorizeTenant.js';
 import { listTenantUsers } from '../controllers/userController.js';
 
-
-
 const router = express.Router();
 
 router.get('/:tenantId', authenticate, authorizeTenantView, getTenantDetails);

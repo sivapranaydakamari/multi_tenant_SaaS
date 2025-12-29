@@ -1,4 +1,4 @@
-import { registerTenantService } from '../services/authService.js';
+import { registerTenantService, loginUserService, getCurrentUserService, logoutUserService } from '../services/authService.js';
 
 export const loginUser = async (req, res, next) => {
   try {
@@ -12,8 +12,6 @@ export const loginUser = async (req, res, next) => {
     next(err);
   }
 };
-
-import { loginUserService } from '../services/authService.js';
 
 export const registerTenant = async (req, res, next) => {
   try {
@@ -29,8 +27,6 @@ export const registerTenant = async (req, res, next) => {
   }
 };
 
-import { getCurrentUserService } from '../services/authService.js';
-
 export const getCurrentUser = async (req, res, next) => {
   try {
     const data = await getCurrentUserService(req.user);
@@ -44,8 +40,6 @@ export const getCurrentUser = async (req, res, next) => {
     next(err);
   }
 };
-
-import { logoutUserService } from '../services/authService.js';
 
 export const logoutUser = async (req, res, next) => {
   try {

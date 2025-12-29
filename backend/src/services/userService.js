@@ -246,44 +246,35 @@ export const updateUserService = async (authUser, userId, body, ip) => {
 
 export const deleteUserService = async (authUser, userId, ip) => {
   const client = await pool.connect();
-
   try {
     const { tenantId } = authUser;
-
     const userRes = await client.query(
       `SELECT * FROM users WHERE id = $1`,
       [userId]
     );
-
     if (userRes.rowCount === 0) {
       const err = new Error("User not found");
       err.statusCode = 404;
       throw err;
     }
-
     const target = userRes.rows[0];
-
     // ensure same tenant
     if (target.tenant_id !== tenantId) {
       const err = new Error("Cannot delete user from another tenant");
       err.statusCode = 403;
       throw err;
     }
-
     await client.query('BEGIN');
-
     // remove assigned tasks (set null)
     await client.query(
       `UPDATE tasks SET assigned_to = NULL WHERE assigned_to = $1`,
       [userId]
     );
-
     // delete user
     await client.query(
       `DELETE FROM users WHERE id = $1`,
       [userId]
     );
-
     // audit log
     await logAudit(
       tenantId,
@@ -293,7 +284,6 @@ export const deleteUserService = async (authUser, userId, ip) => {
       userId,
       ip
     );
-
     await client.query('COMMIT');
 
   } catch (err) {
@@ -304,3 +294,21 @@ export const deleteUserService = async (authUser, userId, ip) => {
   }
 };
 
+// export const listUsersService = async (authUser) => {
+//   const { tenantId, role } = authUser;
+
+//   let query = `
+//     SELECT id, full_name, email, role, status
+//     FROM users
+//   `;
+
+//   const values = [];
+//   if (role !== 'super_admin') {
+//     query += ` WHERE tenant_id = $1`;
+//     values.push(tenantId);
+//   }
+//   query += ` ORDER BY full_name ASC`;
+
+//   const result = await pool.query(query, values);
+//   return result.rows;
+// };
