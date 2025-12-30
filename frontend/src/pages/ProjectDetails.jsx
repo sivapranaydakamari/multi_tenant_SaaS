@@ -152,19 +152,34 @@ const ProjectDetails = () => {
                   border: "1px solid #e5e7eb",
                   borderRadius: 3,
                   p: 2,
-                  minHeight: "70vh",
+                  height: "70vh",
                   display: "flex",
                   flexDirection: "column",
                   bgcolor: "#fafafa",
+                  overflow: "hidden",
                 }}
               >
+
                 {/* COLUMN HEADER */}
                 <Typography fontWeight={600} mb={2}>
                   {col.label}
                 </Typography>
 
                 {/* COLUMN BODY */}
-                <Box sx={{ flexGrow: 1 }}>
+                <Box sx={{  flexGrow: 1,  overflowY: "auto",  pr: 1,
+                    "&::-webkit-scrollbar": {
+                      width: 6,
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      backgroundColor: "#ccc",
+                      borderRadius: 4,
+                    },
+                    "&::-webkit-scrollbar-thumb:hover": {
+                      backgroundColor: "#999",
+                    },
+                  }}
+                >
+
                   {columnTasks.length === 0 && (
                     <Box
                       sx={{
