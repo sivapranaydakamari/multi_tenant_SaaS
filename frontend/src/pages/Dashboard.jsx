@@ -12,7 +12,7 @@ import API from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, tenant, loadUser } = useAuth();
 
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -38,14 +38,26 @@ const Dashboard = () => {
         0
       );
 
+      const projectCount = tenant?.subscription_plan === "free" ? Math.min(projects.length, tenant.max_projects) : projects.length;
+
       setStats({
-        totalProjects: projects.length,
+        totalProjects: projectCount,
         totalTasks,
         completedTasks,
         pendingTasks: totalTasks - completedTasks,
       });
 
-      setRecentProjects(projects.slice(0, 4));
+
+      let visibleProjects = projects;
+
+      if (tenant?.subscription_plan === "free") {
+        visibleProjects = projects.slice(0, tenant.max_projects);
+      }
+
+      setRecentProjects(visibleProjects.slice(0, 4));
+
+
+      // setRecentProjects(projects.slice(0, 4));
 
       const my = [];
       for (let p of projects) {
@@ -61,9 +73,26 @@ const Dashboard = () => {
     }
   };
 
+  const handleGoPro = async () => {
+    try {
+      await API.put(`/tenants/${tenant.id}`, {
+        subscriptionPlan: "pro",
+      });
+
+      await loadUser();
+      await loadDashboard();
+
+    } catch (err) {
+      console.error("Upgrade failed", err.response?.data || err);
+    }
+  };
+
   useEffect(() => {
-    loadDashboard();
-  }, []);
+    if (tenant) {
+      loadDashboard();
+    }
+  }, [tenant]);
+
 
   return (
     <Box sx={{ bgcolor: "#fff", minHeight: "100vh", py: 5 }}>
@@ -73,7 +102,21 @@ const Dashboard = () => {
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" fontWeight={700}>
             Welcome back, {user.fullName}
+
+            {tenant?.subscription_plan === "pro" && (
+              <Chip
+                label="PRO"
+                size="small"
+                sx={{
+                  ml: 2,
+                  bgcolor: "#000",
+                  color: "#fff",
+                  fontWeight: 600,
+                }}
+              />
+            )}
           </Typography>
+
           <Typography color="text.secondary" sx={{ mt: 0.5 }}>
             Here’s a snapshot of your workspace
           </Typography>
@@ -116,6 +159,43 @@ const Dashboard = () => {
             </Grid>
           ))}
         </Grid>
+
+        {tenant?.subscription_plan === "free" && (
+          <Card
+            sx={{
+              mt: 4,
+              p: 3,
+              borderRadius: 3,
+              border: "1px solid #000",
+              bgcolor: "#fafafa",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Box>
+              <Typography fontWeight={700}>
+                Upgrade to Pro
+              </Typography>
+              <Typography fontSize={14} color="text.secondary">
+                Unlock more projects, users, and advanced features
+              </Typography>
+            </Box>
+
+            <Chip
+              label="Go Pro"
+              clickable
+              onClick={handleGoPro}
+              sx={{
+                bgcolor: "#000",
+                color: "#fff",
+                fontWeight: 600,
+                px: 2,
+              }}
+            />
+          </Card>
+        )}
+
 
         {/* RECENT PROJECTS */}
         <Box sx={{ mt: 7 }}>

@@ -226,7 +226,7 @@ const ProjectDetails = () => {
 
                       </Box>
 
-                      <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                      <Box sx={{ display: "flex", gap: 1, mt: 2, color: "#000" }}>
                         <Button
                           size="small"
                           onClick={() => updateTaskStatus(task)}

@@ -1,4 +1,4 @@
-import { getTenantDetailsService } from '../services/tenantService.js';
+import { getTenantDetailsService, addUserToTenantService, updateTenantService, listTenantsService } from '../services/tenantService.js';
 
 export const getTenantDetails = async (req, res, next) => {
   try {
@@ -14,9 +14,6 @@ export const getTenantDetails = async (req, res, next) => {
   }
 };
 
-
-import { updateTenantService } from '../services/tenantService.js';
-
 export const updateTenant = async (req, res, next) => {
   try {
     const data = await updateTenantService(req.user, req.params.tenantId, req.body, req.ip);
@@ -31,9 +28,6 @@ export const updateTenant = async (req, res, next) => {
   }
 };
 
-
-import { listTenantsService } from '../services/tenantService.js';
-
 export const listTenants = async (req, res, next) => {
   try {
     const data = await listTenantsService(req.query);
@@ -46,8 +40,6 @@ export const listTenants = async (req, res, next) => {
     next(err);
   }
 };
-
-import { addUserToTenantService } from '../services/userService.js';
 
 export const addUserToTenant = async (req, res, next) => {
   try {

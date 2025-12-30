@@ -98,7 +98,7 @@ const UserModal = ({ open, onClose, userData, tenantId, refresh }) => {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose} sx = {{color: "#000"}}>Cancel</Button>
         <Button
           variant="contained"
           sx={{ bgcolor: "#000", "&:hover": { bgcolor: "#111" } }}

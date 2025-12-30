@@ -76,12 +76,14 @@ export const updateTenantService = async (authUser, tenantId, body, ip) => {
 
     // tenant admin restrictions
     if (role === "tenant_admin") {
-      if (status || subscriptionPlan || maxUsers || maxProjects) {
+      // Tenant admin can ONLY upgrade subscription to pro
+      if (status || maxUsers || maxProjects || (subscriptionPlan && subscriptionPlan !== "pro")) {
         const err = new Error("Tenant admin cannot modify restricted fields");
         err.statusCode = 403;
         throw err;
       }
     }
+
 
     await client.query('BEGIN');
 
@@ -92,7 +94,11 @@ export const updateTenantService = async (authUser, tenantId, body, ip) => {
 
     if (name) { fields.push(`name = $${idx++}`); values.push(name); }
     if (status && role === 'super_admin') { fields.push(`status = $${idx++}`); values.push(status); }
-    if (subscriptionPlan && role === 'super_admin') { fields.push(`subscription_plan = $${idx++}`); values.push(subscriptionPlan); }
+    if (subscriptionPlan && (role === 'super_admin' || (role === 'tenant_admin' && subscriptionPlan === 'pro'))) {
+      fields.push(`subscription_plan = $${idx++}`);
+      values.push(subscriptionPlan);
+    }
+
     if (maxUsers && role === 'super_admin') { fields.push(`max_users = $${idx++}`); values.push(maxUsers); }
     if (maxProjects && role === 'super_admin') { fields.push(`max_projects = $${idx++}`); values.push(maxProjects); }
 

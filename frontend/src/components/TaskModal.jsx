@@ -168,10 +168,10 @@ const TaskModal = ({ open, onClose, task, projectId, refresh }) => {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose} sx = {{color: "#000"}}>Cancel</Button>
         <Button
           variant="contained"
-          sx={{ px: 3 }}
+          sx={{ px: 3, bgcolor: "#000", "&:hover": { bgcolor: "#111" } }}
           onClick={submit}
         >
           {task ? "Update Task" : "Create Task"}
