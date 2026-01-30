@@ -1,14 +1,12 @@
 {
   "projectName": "Multi-Tenant SaaS Project Management Platform",
-
   "description": "A production-ready multi-tenant SaaS application that allows organizations to manage projects and tasks with strict tenant isolation, role-based access control, and automated database initialization using Docker.",
-
   "liveUrls": {
-    "frontend": "http://localhost:3000",
-    "backend": "http://localhost:5000",
-    "healthCheck": "http://localhost:5000/api/health"
+    "frontend": "https://multi-tenant-saas-frontend-gilt.vercel.app",
+    "backend": "https://multi-tenant-saas-sef3.onrender.com",
+    "healthCheck": "https://multi-tenant-saas-sef3.onrender.com/api/health"
   },
-
+  
   "testCredentials": {
     "superAdmin": {
       "email": "superadmin@system.com",
@@ -28,7 +26,6 @@
       "role": "user"
     }
   },
-
   "technologyStack": {
     "frontend": "React.js",
     "backend": "Node.js (Express)",
@@ -36,7 +33,6 @@
     "authentication": "JWT",
     "containerization": "Docker & Docker Compose"
   },
-
   "dockerSetup": {
     "services": [
       "database",
@@ -49,13 +45,11 @@
       "frontend": "3000"
     }
   },
-
   "databaseInitialization": {
     "migrations": "Automatic via Docker entrypoint",
     "seeds": "Automatic via Docker entrypoint",
     "manualStepsRequired": false
   },
-
   "features": [
     "Multi-tenant architecture with strict data isolation",
     "Role-based access control (Super Admin, Tenant Admin, User)",
@@ -68,11 +62,9 @@
     "Health check endpoint for service readiness",
     "Production-ready container setup"
   ],
-
   "documentation": {
     "readme": "README.md",
     "apiDocumentation": "docs/API.md"
   },
-
   "notes": "All services start using a single command: docker-compose up -d. Database migrations and seed data are executed automatically without any manual intervention."
 }
