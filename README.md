@@ -335,3 +335,19 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ---
 
+## Live Deployment (Production)
+
+The application is deployed and accessible publicly:
+
+### Frontend
+https://multi-tenant-saas-frontend-gilt.vercel.app
+
+### Backend API
+https://multi-tenant-saas-sef3.onrender.com
+
+### Health Check
+https://multi-tenant-saas-sef3.onrender.com/api/healt
+
+## Deployment
+
+This project supports both **local Docker-based deployment** and **cloud production deployment**.
